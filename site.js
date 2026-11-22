@@ -78,7 +78,7 @@ const PROJECTS = [
     id: "octopus", kind: "brand", home: "pan",
     family: [["octopus", "Brand guidelines"], ["octosocial", "Creatives"]],
     title: "Octopus Dropship", tagline: "Brand guidelines for a logistics brand with many arms.",
-    category: "Brand Guidelines · Identity System",
+    category: "Brand Guidelines · Social Creatives",
     services: ["Brand guidelines", "Logo system", "Typography & colour", "Stationery & uniforms"],
     type: "Brand book",
     hero: "cover-octopus-v2",
@@ -149,7 +149,7 @@ const PROJECTS = [
     accent: "#f2a516",
   },
   {
-    id: "octosocial", kind: "feed", familyOf: "octopus", navLabel: "octopus creatives",
+    id: "octosocial", kind: "feed", familyOf: "octopus", navLabel: "octopus creatives", linkTo: ["octopus", "creatives"],
     title: "Octopus Dropship", tagline: "A friendly octopus that makes e-commerce feel simple.",
     category: "Social Media · 3D Mascot Campaigns",
     services: ["Social media design", "Mascot storytelling", "Festive & day posts"],
@@ -212,7 +212,11 @@ const $ = (s, el = document) => el.querySelector(s);
 // HASH_ROUTES (set by the online version) = one page, projects addressed as #frenzy, #decode ...
 const HASH = !!window.HASH_ROUTES;
 const isProject = (id) => PROJECTS.some((p) => p.id === id);
-const link = (id) => (HASH ? `#${id}` : `project.html?p=${id}`);
+const link = (id) => {
+  const to = PROJECTS.find((x) => x.id === id)?.linkTo;
+  if (to) return HASH ? `#${to[0]}` : `project.html?p=${to[0]}#${to[1]}`;
+  return HASH ? `#${id}` : `project.html?p=${id}`;
+};
 const home = (a = "") => (HASH ? `#${a || "top"}` : `index.html${a ? "#" + a : ""}`);
 const APP = () => document.getElementById("app") || document.body;
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -297,16 +301,6 @@ function indexMenu(active) {
       <section class="idx-list">
         <p class="idx-label">Index · ${INDEXED().length} projects</p>
         ${INDEXED().map((p, i) => { const h = heroOf(p);
-          if (p.family) {
-            const members = p.family.map(([id, label]) => [PROJECTS.find((x) => x.id === id), label]).filter(([m]) => m);
-            const on = members.some(([m]) => m.id === active);
-            return `
-        <div class="idx-item idx-fam ${on ? "on" : ""}" style="--accent:${p.accent}; --i:${i + 4}">
-          <span class="idx-num">${String(i + 1).padStart(2, "0")}</span>
-          <a class="idx-name" href="${link(p.id)}">${h ? `<img class="idx-thumb" src="${h.t}" alt="" loading="lazy">` : ""}${esc(p.title)}</a>
-          <span class="idx-folders">${members.map(([m, label]) => `<a href="${link(m.id)}" class="idx-folder ${m.id === active ? "on" : ""}">${FOLDER}<span>${esc(label)}</span><sup>${imagesFor(m).length}</sup></a>`).join("")}</span>
-        </div>`;
-          }
           return `
         <a class="idx-item ${p.id === active ? "on" : ""}" href="${link(p.id)}" style="--accent:${p.accent}; --i:${i + 4}">
           <span class="idx-num">${String(i + 1).padStart(2, "0")}</span>
@@ -519,7 +513,9 @@ function layoutRows(ims) {
 }
 
 function renderProject() {
-  const id = HASH ? location.hash.slice(1) : new URLSearchParams(location.search).get("p");
+  let id = HASH ? location.hash.slice(1) : new URLSearchParams(location.search).get("p");
+  const linked = PROJECTS.find((x) => x.id === id)?.linkTo;
+  if (linked) { id = linked[0]; if (!HASH) history.replaceState(null, "", `project.html?p=${linked[0]}#${linked[1]}`); }
   const idx = Math.max(0, PROJECTS.findIndex((p) => p.id === id));
   const p = PROJECTS[idx], next = PROJECTS[(idx + 1) % PROJECTS.length];
   let ims = imagesFor(p);
@@ -528,7 +524,30 @@ function renderProject() {
   document.documentElement.style.setProperty("--accent", p.accent);
 
   let body;
-  if (p.kind === "feed") {
+  if (p.family) {
+    // one page, two chapters: the brand book (pages shown at a readable size) and the social creatives
+    const by = (re) => ims.filter((im) => re.test(nameOf(im)));
+    const pages = by(/guidelines-\d+/);
+    const mocks = ims.slice(1).filter((im) => !pages.includes(im));
+    const creative = p.family.map(([fid]) => PROJECTS.find((x) => x.id === fid)).filter((m) => m && m.id !== p.id).flatMap((m) => imagesFor(m));
+    ims = [hero, ...pages, ...mocks, ...creative].filter(Boolean);
+    let k = 1;
+    const tile = (im, cls, cap) => `<figure class="${cls} reveal"><button class="f-item" data-i="${k++}" data-cursor="View" style="aspect-ratio:${im.w}/${im.h}"><img src="${im.t}" alt="${esc(p.title)} ${esc(cap)}" loading="lazy"></button>${cap ? `<figcaption>${esc(cap)}</figcaption>` : ""}</figure>`;
+    const chapters = [
+      ["guidelines", "Brand guidelines", `${pages.length} pages · tap any page to read it full size`, `
+        <div class="gl-grid">${pages.map((im, i) => tile(im, "gl-page", `Page ${String(i + 1).padStart(2, "0")}`)).join("")}</div>
+        ${mocks.length ? `<p class="chap-sub reveal">In use</p><div class="gl-mocks">${mocks.map((im) => tile(im, "gl-mock", "")).join("")}</div>` : ""}`, pages.length + mocks.length],
+      ["creatives", "Creatives", "Social media · 3D mascot campaigns", `
+        <div class="masonry chap-masonry">${creative.map((im) => `<button class="m-item reveal" data-i="${k++}" data-cursor="View" style="aspect-ratio:${im.w}/${im.h}"><img src="${im.t}" alt="${esc(p.title)} creative" loading="lazy"></button>`).join("")}</div>`, creative.length],
+    ];
+    body = `
+      <nav class="chap-nav" aria-label="${esc(p.title)} chapters">${chapters.map(([cid, t, , , n], i) => `<a href="#${cid}" data-chap="${cid}" class="${i ? "" : "on"}"><b>${String(i + 1).padStart(2, "0")}</b>${esc(t)}<sup>${n}</sup></a>`).join("")}</nav>
+      ${chapters.map(([cid, t, note, html], i) => `
+      <section class="chapter" id="${cid}">
+        <div class="chap-head"><span class="chap-num">${String(i + 1).padStart(2, "0")}</span><h2 class="split">${esc(t)}</h2><p class="reveal">${esc(note)}</p></div>
+        ${html}
+      </section>`).join("")}`;
+  } else if (p.kind === "feed") {
     // priority images first, then campaigns in order
     const pri = byNames(p, p.first || []);
     const rest = ims.filter((im) => !pri.includes(im));
@@ -558,8 +577,6 @@ function renderProject() {
     <section class="p-head">
       <a class="back" href="${home("work")}">← Back to all work</a>
       <p class="p-cat">${esc(p.category)}</p>
-      ${(() => { const head = p.familyOf ? PROJECTS.find((x) => x.id === p.familyOf) : p; if (!head || !head.family) return "";
-        return `<nav class="fam-tabs" aria-label="${esc(head.title)} sections">${head.family.map(([id, label]) => { const m = PROJECTS.find((x) => x.id === id); return m ? `<a href="${link(id)}" class="${id === p.id ? "on" : ""}" ${id === p.id ? 'aria-current="page"' : ""}>${FOLDER}${esc(label)} <sup>${imagesFor(m).length}</sup></a>` : ""; }).join("")}</nav>`; })()}
       <h1 class="p-title">${esc(p.title).split(" ").map((w) => `<span class="w"><span>${w}</span></span>`).join(" ")}</h1>
       <p class="p-tag"><em>${esc(p.tagline)}</em></p>
       ${p.site?.url ? `<button class="live-btn" data-site="${p.id}" data-cursor="Play"><span class="live-dot"></span>Preview website</button>` : ""}
@@ -584,6 +601,12 @@ function renderProject() {
   ${footer()}`;
 
   $$("[data-i]").forEach((b) => b.addEventListener("click", () => openLightbox(ims, +b.dataset.i)));
+  const chapLinks = $$(".chap-nav a");
+  if (chapLinks.length) {
+    chapLinks.forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); e.stopImmediatePropagation(); goTo(a.dataset.chap); }));
+    const io = new IntersectionObserver((es) => es.forEach((en) => { if (en.isIntersecting) chapLinks.forEach((a) => a.classList.toggle("on", a.dataset.chap === en.target.id)); }), { rootMargin: "-45% 0px -50% 0px" });
+    $$(".chapter").forEach((c) => io.observe(c));
+  }
 }
 
 /* ============================ MOTION ============================ */
@@ -611,7 +634,7 @@ function initSmoothScroll() {
   if (CALM || typeof Lenis === "undefined") return;
   const lenis = new Lenis({ duration: 1.15, easing: (t) => 1 - Math.pow(1 - t, 4), smoothWheel: true });
   window.lenis = lenis;
-  $$('a[href^="#"]').forEach((a) => a.addEventListener("click", (e) => { const t = $(a.getAttribute("href")); if (t) { e.preventDefault(); lenis.scrollTo(t, { offset: -90 }); } }));
+  $$('a[href^="#"]').forEach((a) => a.addEventListener("click", (e) => { const t = $(a.getAttribute("href")); if (t && t.id) { e.preventDefault(); goTo(t.id); } }));
 }
 
 function initScrollFx() {
@@ -943,11 +966,18 @@ function initMailLinks() {
 function goTo(id, instant = false) {
   const t = id === "top" ? 0 : document.getElementById(id);
   if (t === null) return false;
-  const y = t === 0 ? 0 : Math.max(0, t.getBoundingClientRect().top + scrollY - 80);
+  const head = document.querySelector(".site-head")?.offsetHeight || 80;
+  const bar = t !== 0 && t.matches?.(".chapter, .group") ? (document.querySelector(".chap-nav, .chips")?.offsetHeight || 0) : 0;
+  const y = t === 0 ? 0 : Math.max(0, t.getBoundingClientRect().top + scrollY - head - bar - 12);
   if (window.lenis) { window.lenis.start(); window.lenis.scrollTo(y, { duration: 1.3, immediate: instant, force: true }); if (instant) scrollTo(0, y); return true; }
   else if (t === 0) scrollTo({ top: 0, behavior: instant ? "auto" : "smooth" });
   else t.scrollIntoView({ behavior: instant ? "auto" : "smooth" });
   return true;
+}
+/* keep sticky bars (chapter tabs, campaign chips) just under the top bar, whatever its height */
+function syncHeadHeight() {
+  const set = () => document.documentElement.style.setProperty("--head-h", `${document.querySelector(".site-head")?.offsetHeight || 74}px`);
+  set(); addEventListener("resize", set); document.fonts?.ready.then(set);
 }
 function initGoto() {
   document.addEventListener("click", (e) => {
@@ -991,6 +1021,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isProj = HASH ? route !== "home" : document.body.dataset.page === "project";
   (isProj ? renderProject : renderHome)();
   if (isProj) scrollTo(0, 0);
+  if (isProj && !HASH && location.hash.length > 1) setTimeout(() => { try { goTo(location.hash.slice(1), true); } catch {} }, 450);
   splitText();
   initReveal();
   initSmoothScroll();
@@ -1006,5 +1037,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initIndex();
   initMailLinks();
   initGoto();
+  syncHeadHeight();
   if (location.hash && !isProj && location.hash !== "#top") setTimeout(() => { try { goTo(location.hash.slice(1), true); } catch {} }, 350);
 });
