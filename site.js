@@ -813,7 +813,7 @@ function initDeck() {
 function fitHero() {
   const h = $(".hero-title"); if (!h) return;
   const hero = h.closest(".hero"), pad = parseFloat(getComputedStyle(hero).paddingLeft) || 16;
-  const target = Math.min(hero.clientWidth - pad * 2, 1100, innerHeight * 0.85);
+  const target = Math.max(200, Math.min(hero.clientWidth - pad * 2, 1100, innerHeight > 300 ? innerHeight * 0.85 : Infinity));
   [["l1", 1], ["l3", 1], ["l2", 0.8]].forEach(([cls, k]) => {
     const line = $("." + cls, h), inner = line && line.firstElementChild; if (!inner) return;
     const f = parseFloat(getComputedStyle(line).fontSize), w = inner.offsetWidth;
@@ -994,6 +994,64 @@ function initGoto() {
   }, true);
 }
 
+/* liquid cursor across the whole site: a small blue drop that stretches as it moves and leaves a gooey trail.
+   Over anything you can click or drag it hands over to the normal circle cursor. On phones it follows your finger.
+   The gooey filter only runs on a small box around the drop, and nothing animates while it is at rest. */
+function initGoo() {
+  if (CALM) return;
+  const N = 7, B = 160;
+  document.body.insertAdjacentHTML("beforeend", `
+    <svg class="goo-defs" aria-hidden="true" width="0" height="0"><filter id="goo" x="0" y="0" width="100%" height="100%"><feGaussianBlur in="SourceGraphic" stdDeviation="9"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/></filter></svg>
+    <div class="goo" aria-hidden="true">${Array.from({ length: N }, (_, i) => `<i data-s="${(1 - i / (N + 1.5)).toFixed(3)}"></i>`).join("")}<b class="goo-shine"></b></div>`);
+  const box = $(".goo"), dots = $$(".goo i"), shine = $(".goo-shine");
+  const sc = dots.map((d) => +d.dataset.s);
+  const P = dots.map(() => ({ x: -999, y: -999 }));
+  const HOT = "a, button, input, textarea, select, label, [data-cursor], [data-drift], .fan-card, .chap-nav a, .ci, .idx-item";
+  let tx = -999, ty = -999, active = false, hot = false, touch = false, grow = 0, raf = 0, vx = 0, vy = 0, lx = 0, ly = 0, idle = 0, liftT;
+  const snap = (x, y) => { P.forEach((p) => { p.x = x; p.y = y; }); lx = x; ly = y; vx = vy = 0; };
+  const start = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  const syncBody = () => document.body.classList.toggle("goo-on", active && !hot && !touch);
+
+  // computers
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return;
+    if (!active) snap(e.clientX, e.clientY);
+    tx = e.clientX; ty = e.clientY; active = true; touch = false; syncBody(); start();
+  }, { passive: true });
+  document.addEventListener("mouseover", (e) => { hot = !!e.target.closest?.(HOT); syncBody(); start(); });
+  document.documentElement.addEventListener("mouseleave", () => { active = false; syncBody(); start(); });
+  addEventListener("pointerdown", (e) => { if (e.pointerType === "mouse") box.classList.add("press"); });
+  addEventListener("pointerup", () => box.classList.remove("press"));
+
+  // phones: the drop appears under your finger, follows it, and melts away when you lift it
+  const onTouch = (e) => {
+    const t = e.touches[0]; if (!t) return;
+    if (!active || !touch) snap(t.clientX, t.clientY);
+    clearTimeout(liftT); tx = t.clientX; ty = t.clientY; active = true; touch = true; hot = false; start();
+  };
+  addEventListener("touchstart", onTouch, { passive: true });
+  addEventListener("touchmove", onTouch, { passive: true });
+  addEventListener("touchend", () => { liftT = setTimeout(() => { active = false; start(); }, 220); }, { passive: true });
+
+  const tick = () => {
+    raf = 0;
+    grow += (((active && !hot) ? 1 : 0) - grow) * .14;
+    P[0].x += (tx - P[0].x) * .32; P[0].y += (ty - P[0].y) * .32;
+    for (let i = 1; i < N; i++) { P[i].x += (P[i - 1].x - P[i].x) * .38; P[i].y += (P[i - 1].y - P[i].y) * .38; }
+    vx += ((P[0].x - lx) - vx) * .3; vy += ((P[0].y - ly) - vy) * .3; lx = P[0].x; ly = P[0].y;
+    const sp = Math.min(1, Math.hypot(vx, vy) / 40), ang = Math.atan2(vy, vx) * 180 / Math.PI;
+    box.style.transform = `translate3d(${(P[0].x - B).toFixed(1)}px, ${(P[0].y - B).toFixed(1)}px, 0)`;
+    dots.forEach((d, i) => {
+      const st = i === 0 ? ` rotate(${ang.toFixed(1)}deg) scale(${(1 + sp * .45).toFixed(3)}, ${(1 - sp * .28).toFixed(3)})` : "";
+      d.style.transform = `translate3d(${(P[i].x - P[0].x).toFixed(1)}px, ${(P[i].y - P[0].y).toFixed(1)}px, 0) scale(${(grow * sc[i]).toFixed(3)})${st}`;
+    });
+    shine.style.transform = `translate3d(${(-7 - vx * .2).toFixed(1)}px, ${(-8 - vy * .2).toFixed(1)}px, 0) scale(${grow.toFixed(3)})`;
+    const settled = Math.abs(tx - P[N - 1].x) + Math.abs(ty - P[N - 1].y) < .3 && Math.abs(grow - ((active && !hot) ? 1 : 0)) < .01;
+    idle = settled ? idle + 1 : 0;
+    if (idle < 20) start();
+  };
+}
+
 function initPageTransitions() {
   requestAnimationFrame(() => document.body.classList.add("ready"));
   document.addEventListener("click", (e) => {
@@ -1037,6 +1095,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initIndex();
   initMailLinks();
   initGoto();
+  initGoo();
   syncHeadHeight();
   if (location.hash && !isProj && location.hash !== "#top") setTimeout(() => { try { goTo(location.hash.slice(1), true); } catch {} }, 350);
 });

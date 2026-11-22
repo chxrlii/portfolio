@@ -677,3 +677,18 @@ html.lenis, html.lenis body { height: auto; }
   .chap-nav a { padding: 9px 13px; font-size: 13px; gap: 6px; white-space: nowrap; }
   .chap-nav a b { display: none; }
 }
+
+
+/* site-wide liquid cursor */
+.goo-defs { position: absolute; width: 0; height: 0; }
+.goo { position: fixed; left: 0; top: 0; width: 320px; height: 320px; pointer-events: none; z-index: 190; filter: url(#goo); will-change: transform; transition: opacity .3s; }
+.goo i { position: absolute; left: 137px; top: 137px; width: 46px; height: 46px; border-radius: 50%; background: var(--blue); transform: scale(0); will-change: transform; }
+.goo i:first-child { left: 133px; top: 133px; width: 54px; height: 54px; transition: width .35s cubic-bezier(.34,1.6,.5,1), height .35s cubic-bezier(.34,1.6,.5,1), left .35s cubic-bezier(.34,1.6,.5,1), top .35s cubic-bezier(.34,1.6,.5,1); }
+.goo.press i:first-child { left: 118px; top: 118px; width: 84px; height: 84px; }
+.goo-shine { position: absolute; left: 154px; top: 156px; width: 12px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.75); transform: scale(0); }
+.hero-title, .hero-sub { position: relative; z-index: 1; }
+body.goo-on .cursor:not(.big):not(.link) span { opacity: 0; }
+.lb-open .goo, .sitebox-open .goo { opacity: 0; }
+
+
+
