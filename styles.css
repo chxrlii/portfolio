@@ -718,3 +718,11 @@ body.goo-on .cursor:not(.big):not(.link) span { opacity: 0; }
   .wa-btn span { display: none; }
   .wa-btn svg { width: 20px; height: 20px; }
 }
+
+/* top bar buttons share one pill shape: same height, fully rounded ends, same type */
+.head-right { gap: 8px; }
+.head-right .btn, .head-right .wa-btn, .head-right .idx-btn { height: 40px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; box-sizing: border-box; }
+.head-right .btn { display: inline-flex; align-items: center; padding: 0 18px; border: 1px solid var(--line); }
+.head-right .wa-btn { border: 1px solid #25d366; }
+.head-right .idx-btn { border: 1px solid var(--line); }
+@media (max-width: 900px) { .head-right .btn { display: none; } }
