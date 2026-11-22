@@ -148,6 +148,20 @@ const PROJECTS = [
     accent: "#f2a516",
   },
   {
+    id: "octosocial", kind: "feed",
+    title: "Octopus Dropship", tagline: "A friendly octopus that makes e-commerce feel simple.",
+    category: "Social Media · 3D Mascot Campaigns",
+    services: ["Social media design", "Mascot storytelling", "Festive & day posts"],
+    type: "Social media",
+    hero: "octopus-sep-creatives-statics-46",
+    first: ["octopus-sep-creatives-statics-46", "octopus-sep-creatives-statics-47", "octopus-sep-creatives-statics-45", "octopus-sep-creatives-statics-48", "octopus-sep-tourism", "octopus-september-gandhi-jayanti", "swa-june-story-30"],
+    intro: [
+      "Social content for Octopus Dropship, built around the brand's blue 3D octopus mascot — explaining how the platform connects manufacturers, suppliers and online sellers in one place.",
+      "Alongside the product posts, the octopus shows up for World Tourism Day, Gandhi Jayanti and Muharram, keeping the feed warm and recognisable.",
+    ],
+    accent: "#3d63f2",
+  },
+  {
     id: "posters", kind: "feed",
     title: "Culture Posters", tagline: "Cars, legends and heroes, printed big.",
     category: "Poster Design · 24×36 prints",
