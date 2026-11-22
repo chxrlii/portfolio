@@ -183,18 +183,6 @@ const PROJECTS = [
     accent: "#e0412f",
   },
   {
-    id: "vibe9", kind: "feed", small: true,
-    title: "Vibe9", tagline: "Warm, gentle jewellery stories.",
-    category: "Social Media · Jewellery",
-    services: ["Social media design", "Festive creatives"],
-    type: "Social media",
-    sources: [],
-    pick: [["swa", ["swa-home-11"]]],
-    hero: "swa-home-11",
-    intro: ["Social creatives for Vibe9 — soft light, warm tones and a quiet, storybook mood, like this Daughter's Day post."],
-    accent: "#e0893a",
-  },
-  {
     id: "playground", kind: "brand",
     title: "Playground", tagline: "Posters, book covers and tees.",
     category: "Poster · Book Cover · Apparel",
