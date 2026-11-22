@@ -76,6 +76,7 @@ const PROJECTS = [
   },
   {
     id: "octopus", kind: "brand", home: "pan",
+    family: [["octopus", "Brand guidelines"], ["octosocial", "Creatives"]],
     title: "Octopus Dropship", tagline: "Brand guidelines for a logistics brand with many arms.",
     category: "Brand Guidelines · Identity System",
     services: ["Brand guidelines", "Logo system", "Typography & colour", "Stationery & uniforms"],
@@ -148,7 +149,7 @@ const PROJECTS = [
     accent: "#f2a516",
   },
   {
-    id: "octosocial", kind: "feed",
+    id: "octosocial", kind: "feed", familyOf: "octopus", navLabel: "octopus creatives",
     title: "Octopus Dropship", tagline: "A friendly octopus that makes e-commerce feel simple.",
     category: "Social Media · 3D Mascot Campaigns",
     services: ["Social media design", "Mascot storytelling", "Festive & day posts"],
@@ -239,6 +240,8 @@ function toolIcon(name) {
   const t = TOOL_ICONS[name];
   return t ? `<span class="tool-ico" aria-hidden="true" style="background:${t[1]};color:${t[2]};box-shadow:inset 0 0 0 1.5px ${t[2]}">${t[0]}</span>` : `<span class="tool-ico" aria-hidden="true">✦</span>`;
 }
+const INDEXED = () => PROJECTS.filter((p) => !p.familyOf);
+const FOLDER = `<svg class="fold-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`;
 const FINE = matchMedia("(pointer: fine)").matches;
 const CALM = false; // animations always on (set to matchMedia("(prefers-reduced-motion: reduce)").matches to respect the OS setting)
 const nameOf = (im) => im.s.split("/").pop().replace(/(_w)?\.jpg$/, ""); // online copies end in _w.jpg
@@ -267,7 +270,7 @@ function header(active) {
   <header class="site-head">
     <a class="logo" href="${home()}" aria-label="Home">${STAR}<span>Jithin<br>Baby</span></a>
     <nav class="menu" id="menu">
-      ${groups.map(([g, ps]) => `<div class="menu-group"><div class="menu-label">${g}</div>${ps.map((p) => `<a href="${link(p.id)}" class="${p.id === active ? "on" : ""}">✦ ${esc(p.title.toLowerCase())}</a>`).join("")}</div>`).join("")}
+      ${groups.map(([g, ps]) => `<div class="menu-group"><div class="menu-label">${g}</div>${ps.map((p) => `<a href="${link(p.id)}" class="${p.id === active ? "on" : ""}">✦ ${esc((p.navLabel || p.title).toLowerCase())}</a>`).join("")}</div>`).join("")}
       <div class="menu-group"><div class="menu-label">Info</div><a href="${home("about")}" data-goto="about">✦ about</a><a href="#contact" data-goto="contact">✦ contact</a></div>
     </nav>
     <div class="head-right">
@@ -292,8 +295,19 @@ function indexMenu(active) {
         <nav class="idx-sections">${sections.map(([t, h, g], i) => `<a href="${h}" data-goto="${g}" style="--i:${i + 3}">${t}</a>`).join("")}</nav>
       </section>
       <section class="idx-list">
-        <p class="idx-label">Index · ${PROJECTS.length} projects</p>
-        ${PROJECTS.map((p, i) => { const h = heroOf(p); return `
+        <p class="idx-label">Index · ${INDEXED().length} projects</p>
+        ${INDEXED().map((p, i) => { const h = heroOf(p);
+          if (p.family) {
+            const members = p.family.map(([id, label]) => [PROJECTS.find((x) => x.id === id), label]).filter(([m]) => m);
+            const on = members.some(([m]) => m.id === active);
+            return `
+        <div class="idx-item idx-fam ${on ? "on" : ""}" style="--accent:${p.accent}; --i:${i + 4}">
+          <span class="idx-num">${String(i + 1).padStart(2, "0")}</span>
+          <a class="idx-name" href="${link(p.id)}">${h ? `<img class="idx-thumb" src="${h.t}" alt="" loading="lazy">` : ""}${esc(p.title)}</a>
+          <span class="idx-folders">${members.map(([m, label]) => `<a href="${link(m.id)}" class="idx-folder ${m.id === active ? "on" : ""}">${FOLDER}<span>${esc(label)}</span><sup>${imagesFor(m).length}</sup></a>`).join("")}</span>
+        </div>`;
+          }
+          return `
         <a class="idx-item ${p.id === active ? "on" : ""}" href="${link(p.id)}" style="--accent:${p.accent}; --i:${i + 4}">
           <span class="idx-num">${String(i + 1).padStart(2, "0")}</span>
           <span class="idx-name">${h ? `<img class="idx-thumb" src="${h.t}" alt="" loading="lazy">` : ""}${esc(p.title)}</span>
@@ -544,6 +558,8 @@ function renderProject() {
     <section class="p-head">
       <a class="back" href="${home("work")}">← Back to all work</a>
       <p class="p-cat">${esc(p.category)}</p>
+      ${(() => { const head = p.familyOf ? PROJECTS.find((x) => x.id === p.familyOf) : p; if (!head || !head.family) return "";
+        return `<nav class="fam-tabs" aria-label="${esc(head.title)} sections">${head.family.map(([id, label]) => { const m = PROJECTS.find((x) => x.id === id); return m ? `<a href="${link(id)}" class="${id === p.id ? "on" : ""}" ${id === p.id ? 'aria-current="page"' : ""}>${FOLDER}${esc(label)} <sup>${imagesFor(m).length}</sup></a>` : ""; }).join("")}</nav>`; })()}
       <h1 class="p-title">${esc(p.title).split(" ").map((w) => `<span class="w"><span>${w}</span></span>`).join(" ")}</h1>
       <p class="p-tag"><em>${esc(p.tagline)}</em></p>
       ${p.site?.url ? `<button class="live-btn" data-site="${p.id}" data-cursor="Play"><span class="live-dot"></span>Preview website</button>` : ""}

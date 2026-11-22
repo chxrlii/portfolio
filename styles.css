@@ -619,3 +619,27 @@ html.lenis, html.lenis body { height: auto; }
 
 /* a lone card in "More work" sits at a comfortable width instead of half the grid */
 .cards:has(> .card:only-child) { grid-template-columns: minmax(0, 760px); }
+
+/* index: a project with two folders (Octopus: brand guidelines + creatives) */
+.idx-fam { grid-template-columns: 34px 1fr auto; }
+.idx-fam .idx-name { color: inherit; }
+.idx-fam .idx-name:hover { color: var(--accent); }
+.idx-folders { grid-column: 3; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.idx-folder { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 99px; font-size: 12px; font-weight: 700; color: var(--fg); transition: background .25s, border-color .25s, color .25s; }
+.idx-folder sup { font-weight: 500; opacity: .6; }
+.idx-folder .fold-ico { width: 15px; height: 15px; color: var(--accent); }
+.idx-folder:hover, .idx-folder.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.idx-folder:hover .fold-ico, .idx-folder.on .fold-ico { color: #fff; }
+@media (max-width: 900px) {
+  .idx-fam { grid-template-columns: 26px 1fr; grid-template-rows: auto auto; }
+  .idx-fam .idx-num { grid-row: 1 / 3; }
+  .idx-fam .idx-name { grid-column: 2; }
+  .idx-folders { grid-column: 2; grid-row: 2; justify-content: flex-start; margin-top: 6px; }
+}
+/* project page switch between a project's folders */
+.fam-tabs { display: inline-flex; gap: 6px; margin-top: 18px; padding: 4px; border: 1px solid var(--line); border-radius: 99px; }
+.fam-tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 99px; font-size: 13px; font-weight: 700; color: var(--muted); transition: background .25s, color .25s; }
+.fam-tabs a sup { font-weight: 500; opacity: .7; }
+.fam-tabs .fold-ico { width: 16px; height: 16px; }
+.fam-tabs a:hover { color: var(--fg); }
+.fam-tabs a.on { background: var(--accent); color: #fff; }
