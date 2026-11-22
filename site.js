@@ -94,6 +94,7 @@ const PROJECTS = [
     services: ["Social media design", "Campaign concepts", "Stories", "Offer creatives"],
     type: "In-house · 2026 — Present",
     hero: "swa-july-greek-26",
+    hide: ["artboard-21", "xmas-26", "xmas-27", "swa-june-story"], // images removed from the site
     first: [], // ← put your two priority images here, e.g. ["swa-july-greek-26", "swa-val-coming-soon--recovered--01"]
     groups: [
       ["Garden of Love", "Valentine's campaign", /val-coming-soon|feb-story/],
@@ -217,7 +218,8 @@ const words = (t) => t.split(" ").map((w, i) => `<span class="w"><span style="--
 
 function imagesFor(p) {
   const M = window.MANIFEST || {};
-  const list = (p.sources || [p.id]).flatMap((k) => M[k] || []);
+  const hidden = new Set(p.hide || []);
+  const list = (p.sources || [p.id]).flatMap((k) => M[k] || []).filter((im) => !hidden.has(im.s.split("/").pop().replace(/(_w)?\.jpg$/, "")));
   const order = [...(p.first || []), p.hero, ...(p.first ? [] : [])].filter(Boolean);
   const picked = [...new Set(order)].map((n) => list.find((im) => nameOf(im) === n)).filter(Boolean);
   return [...picked, ...list.filter((im) => !picked.includes(im))];
