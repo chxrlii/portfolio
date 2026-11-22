@@ -995,10 +995,10 @@ function initGoto() {
 }
 
 /* liquid cursor across the whole site: a small blue drop that stretches as it moves and leaves a gooey trail.
-   Over anything you can click or drag it hands over to the normal circle cursor. On phones it follows your finger.
+   Over anything you can click or drag it hands over to the normal circle cursor. Computers only.
    The gooey filter only runs on a small box around the drop, and nothing animates while it is at rest. */
 function initGoo() {
-  if (CALM) return;
+  if (CALM || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;   // computers only; phones keep the plain page
   const N = 7, B = 160;
   document.body.insertAdjacentHTML("beforeend", `
     <svg class="goo-defs" aria-hidden="true" width="0" height="0"><filter id="goo" x="0" y="0" width="100%" height="100%"><feGaussianBlur in="SourceGraphic" stdDeviation="9"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/></filter></svg>
@@ -1023,15 +1023,6 @@ function initGoo() {
   addEventListener("pointerdown", (e) => { if (e.pointerType === "mouse") box.classList.add("press"); });
   addEventListener("pointerup", () => box.classList.remove("press"));
 
-  // phones: the drop appears under your finger, follows it, and melts away when you lift it
-  const onTouch = (e) => {
-    const t = e.touches[0]; if (!t) return;
-    if (!active || !touch) snap(t.clientX, t.clientY);
-    clearTimeout(liftT); tx = t.clientX; ty = t.clientY; active = true; touch = true; hot = false; start();
-  };
-  addEventListener("touchstart", onTouch, { passive: true });
-  addEventListener("touchmove", onTouch, { passive: true });
-  addEventListener("touchend", () => { liftT = setTimeout(() => { active = false; start(); }, 220); }, { passive: true });
 
   const tick = () => {
     raf = 0;
@@ -1050,6 +1041,59 @@ function initGoo() {
     idle = settled ? idle + 1 : 0;
     if (idle < 20) start();
   };
+}
+
+/* intro cards: "deal the cards". The stack deals out into a fan as the section scrolls into view,
+   a card lifts when you point at it, and tapping a card opens its project. No dragging, so nothing fights the page scroll. */
+function initDeal() {
+  const fan = $(".fan"); if (!fan) return;
+  const cards = $$(".fan-card", fan); if (!cards.length) return;
+  fan.classList.add("deal");
+  const projectOf = (img) => /\/mirror\//.test(img) ? "mirror" : /\/swa\//.test(img) ? "swa" : /frenzy/.test(img) ? "frenzy" : "";
+  // Frenzy in the middle of the hand, the jewellery around it
+  const order = [3, 0, 2, 1, 4, 5].filter((i) => cards[i]).concat(cards.map((_, i) => i).filter((i) => i > 5));
+  const hand = order.map((i) => cards[i]);
+  const mid = (hand.length - 1) / 2;
+  hand.forEach((card) => {
+    const id = projectOf(card.querySelector("img")?.getAttribute("src") || "");
+    if (id) { card.dataset.cursor = "Open"; card.setAttribute("role", "link"); card.setAttribute("tabindex", "0"); card.setAttribute("aria-label", `Open ${PROJECTS.find((p) => p.id === id)?.title || id}`); }
+    const go = () => { if (id) location.href = link(id); };
+    card.addEventListener("click", go);
+    card.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+  });
+  fan.removeAttribute("aria-hidden");
+  const hint = document.createElement("p"); hint.className = "deal-hint"; hint.textContent = "Tap a card to open the project"; fan.appendChild(hint);
+
+  let hover = -1, raf = 0, cur = 0;
+  hand.forEach((card, i) => {
+    card.addEventListener("mouseenter", () => { hover = i; kick(); });
+    card.addEventListener("mouseleave", () => { if (hover === i) hover = -1; kick(); });
+  });
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const draw = () => {
+    raf = 0;
+    const r = fan.getBoundingClientRect(), vh = innerHeight;
+    // 0 when the section's top reaches the bottom of the screen, 1 once it is well inside
+    const target = Math.min(1, Math.max(0, (vh - r.top) / (vh * .75 + r.height * .25)));
+    cur += (target - cur) * .14;
+    const p = ease(cur);
+    const w = hand[0].offsetWidth || 200, fw = fan.offsetWidth;
+    const step = Math.min(w * .62, (fw - w * 1.05) / Math.max(1, hand.length - 1));
+    hand.forEach((card, i) => {
+      const t = i - mid;
+      const sx = 0, sy = -i * 3, sr = (i % 2 ? 4 : -4) * (1 - i / hand.length);
+      const fx = t * step, fy = t * t * w * .045, fr = t * 9;
+      let x = sx + (fx - sx) * p, y = sy + (fy - sy) * p, rot = sr + (fr - sr) * p, sc = 1;
+      if (i === hover) { y -= w * .16; sc = 1.06; rot *= .4; }
+      card.style.transform = `translate(-50%, -50%) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg) scale(${sc})`;
+      card.style.zIndex = i === hover ? 50 : 20 - Math.round(Math.abs(t) * 2) + (/frenzy/.test(card.querySelector("img")?.getAttribute("src") || "") ? 1 : 0);
+    });
+    if (Math.abs(target - cur) > .001) kick();
+  };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(draw); };
+  addEventListener("scroll", kick, { passive: true });
+  addEventListener("resize", kick);
+  kick();
 }
 
 function initPageTransitions() {
@@ -1087,7 +1131,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCursor();
   initDrift();
   initPlay();
-  initDeck();
+  initDeal();
   fitHero(); addEventListener("resize", fitHero); document.fonts?.ready.then(fitHero);
   initHeroPaint();
   initPageTransitions();

@@ -692,3 +692,18 @@ body.goo-on .cursor:not(.big):not(.link) span { opacity: 0; }
 
 
 
+
+/* ===== intro cards v3: deal the cards ===== */
+.fan.deal { transform: none !important; perspective: none; height: clamp(400px, 40vw, 560px); }
+.fan.deal .fan-card { left: 50% !important; top: 46% !important; width: clamp(150px, 15vw, 220px) !important; translate: none !important; display: block;
+  transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .3s; box-shadow: 0 20px 50px rgba(0,0,0,.55); cursor: pointer; will-change: transform; }
+.fan.deal .fan-card.extra { display: block; }
+.fan.deal .fan-card:hover { box-shadow: 0 30px 70px rgba(47,107,255,.35); }
+.fan.deal .fan-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+.fan.deal .fan-star { translate: none !important; right: 6%; bottom: 16%; top: auto; left: auto; z-index: 60; }
+.deal-hint { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+.fan.deal .stack-hint, .fan.deal .shade { display: none; }
+@media (max-width: 900px) {
+  .fan.deal { height: min(92vw, 420px); }
+  .fan.deal .fan-card { width: min(36vw, 170px) !important; }
+}
