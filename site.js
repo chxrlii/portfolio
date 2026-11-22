@@ -278,6 +278,7 @@ function header(active) {
       <div class="menu-group"><div class="menu-label">Info</div><a href="${home("about")}" data-goto="about">✦ about</a><a href="#contact" data-goto="contact">✦ contact</a></div>
     </nav>
     <div class="head-right">
+      ${(() => { const wa = ABOUT.socials.find((x) => x.icon === "wa" && x.url); return wa ? `<a class="wa-btn" href="${wa.url}?text=${encodeURIComponent("Hi Jithin, I saw your portfolio and would like to talk.")}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">${ICONS.wa}<span>WhatsApp</span></a>` : ""; })()}
       <a class="btn" href="mailto:${ABOUT.email}">Let's work together</a>
       <button class="idx-btn" aria-label="Open index" aria-expanded="false" aria-controls="idx"><span class="idx-word"><i>Index</i><i>Close</i></span><span class="idx-burger"><b></b><b></b><b></b></span></button>
     </div>

@@ -707,3 +707,14 @@ body.goo-on .cursor:not(.big):not(.link) span { opacity: 0; }
   .fan.deal { height: min(92vw, 420px); }
   .fan.deal .fan-card { width: min(36vw, 170px) !important; }
 }
+
+/* WhatsApp button in the top bar */
+.wa-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border-radius: 99px; background: #25d366; color: #06301a; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; transition: background .25s, transform .3s cubic-bezier(.34,1.6,.5,1); }
+.wa-btn svg { width: 18px; height: 18px; }
+.wa-btn:hover { background: #2ee876; transform: translateY(-1px); }
+.idx-open .site-head .wa-btn { opacity: 0; pointer-events: none; }
+@media (max-width: 900px) {
+  .wa-btn { width: 40px; padding: 0; justify-content: center; }
+  .wa-btn span { display: none; }
+  .wa-btn svg { width: 20px; height: 20px; }
+}
