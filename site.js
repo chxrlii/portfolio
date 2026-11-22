@@ -94,7 +94,7 @@ const PROJECTS = [
     services: ["Social media design", "Campaign concepts", "Stories", "Offer creatives"],
     type: "In-house · 2026 — Present",
     hero: "swa-july-greek-26",
-    hide: ["artboard-21", "xmas-26", "xmas-27", "swa-june-story"], // images removed from the site
+    hide: ["artboard-21", "xmas-26", "xmas-27", "swa-june-story", "swa-for-home-preity-sep-23", "swa-home-08", "swa-story-templete-12", "swa-home-11"], // images removed from the site
     first: [], // ← put your two priority images here, e.g. ["swa-july-greek-26", "swa-val-coming-soon--recovered--01"]
     groups: [
       ["Garden of Love", "Valentine's campaign", /val-coming-soon|feb-story/],
@@ -118,12 +118,14 @@ const PROJECTS = [
     services: ["Social media design", "Seasonal grids", "Stories", "Festive campaigns"],
     type: "Social media retainer",
     hero: "mirror-diamond-grid-01-02",
+    pick: [["swa", ["swa-for-home-preity-sep-23", "swa-home-08", "swa-story-templete-12"]]], // Mirror posts that were saved in the SWA folder
     groups: [
       ["The silk grid", "Signature magenta feed", /diamond-grid/],
       ["Christmas", "Winter festive grid", /xmas/],
       ["New Year & Republic Day", "January campaign", /january|jan-sm/],
       ["Valentine's", "February grid", /february/],
       ["Summer", "Citrus & sunlight", /april|june|july/],
+      ["Special days", "Daughter's Day, World Diamond Day & more", /^swa-/],
       ["Eid al-Adha", "Festive post", /./],
     ],
     intro: [
@@ -164,6 +166,18 @@ const PROJECTS = [
       "Each one is built for print at 24×36 inches: bold condensed headlines, layered photo work and small editorial details like colour dots, captions and dates.",
     ],
     accent: "#e0412f",
+  },
+  {
+    id: "vibe9", kind: "feed", small: true,
+    title: "Vibe9", tagline: "Warm, gentle jewellery stories.",
+    category: "Social Media · Jewellery",
+    services: ["Social media design", "Festive creatives"],
+    type: "Social media",
+    sources: [],
+    pick: [["swa", ["swa-home-11"]]],
+    hero: "swa-home-11",
+    intro: ["Social creatives for Vibe9 — soft light, warm tones and a quiet, storybook mood, like this Daughter's Day post."],
+    accent: "#e0893a",
   },
   {
     id: "playground", kind: "brand",
@@ -219,7 +233,9 @@ const words = (t) => t.split(" ").map((w, i) => `<span class="w"><span style="--
 function imagesFor(p) {
   const M = window.MANIFEST || {};
   const hidden = new Set(p.hide || []);
-  const list = (p.sources || [p.id]).flatMap((k) => M[k] || []).filter((im) => !hidden.has(im.s.split("/").pop().replace(/(_w)?\.jpg$/, "")));
+  const nm = (im) => im.s.split("/").pop().replace(/(_w)?\.jpg$/, "");
+  const picked0 = (p.pick || []).flatMap(([k, names]) => (M[k] || []).filter((im) => names.includes(nm(im))));
+  const list = (p.sources || [p.id]).flatMap((k) => M[k] || []).concat(picked0).filter((im) => !hidden.has(nm(im)));
   const order = [...(p.first || []), p.hero, ...(p.first ? [] : [])].filter(Boolean);
   const picked = [...new Set(order)].map((n) => list.find((im) => nameOf(im) === n)).filter(Boolean);
   return [...picked, ...list.filter((im) => !picked.includes(im))];
@@ -352,8 +368,8 @@ function closeLb() { $("#lightbox").classList.remove("open"); document.body.clas
 function renderHome() {
   const sliders = PROJECTS.filter((p) => p.home === "slider");
   const panners = PROJECTS.filter((p) => p.home === "pan");
-  const feeds = PROJECTS.filter((p) => p.kind === "feed");
-  const more = PROJECTS.filter((p) => !p.home && p.kind !== "feed");
+  const feeds = PROJECTS.filter((p) => p.kind === "feed" && !p.small);
+  const more = PROJECTS.filter((p) => (!p.home && p.kind !== "feed") || p.small);
   const P = (id) => PROJECTS.find((p) => p.id === id);
   const fan = [byNames(P("mirror"), ["mirror-february-grid-14"])[0], { t: "img/about/frenzy-logo.jpg" }, byNames(P("swa"), ["swa-july-greek-22"])[0]].filter(Boolean);
   // extra cards only used in the phone deck: Garden of Love (SWA), Mirror summer, SWA bloom
