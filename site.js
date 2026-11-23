@@ -401,9 +401,6 @@ function renderHome() {
   ${header()}
   <main>
     <section class="hero">
-      <div class="hero-lines" aria-hidden="true"></div>
-      <div class="hero-star" aria-hidden="true" data-depth="40">${STAR}</div>
-      <div class="hero-star small" aria-hidden="true" data-depth="-25">${STAR}</div>
       <h1 class="hero-title" data-depth="10"><span class="l1"><span>I design</span></span><span class="l2"><span><em>things you</em></span></span><span class="l3"><span>remember.</span></span></h1>
       <p class="hero-sub">Graphic Design · ${ABOUT.location}</p>
       <div class="scroll-cue" aria-hidden="true"><span></span></div>
@@ -798,6 +795,42 @@ function initDeck() {
   requestAnimationFrame(tick);
 }
 
+/* first page wall: images in img/cover (made from the "cover" folder by _tools/build_cover.py), grouped by project */
+const COVER = {
+  mirror: ["mirror-jan-sm-post-8-c1", "mirror-diamond-grid-01-06", "mirror-diamond-grid-01-09", "mirror-diamond-grid-10-12", "mirror-april-summer-grid-01", "mirror-april-summer-grid-03", "mirror-april-summer-grid-05", "mirror-february-grid-01", "mirror-february-grid-02", "mirror-february-grid-03", "mirror-february-grid-08", "mirror-january-grid-07", "mirror-january-grid-09", "mirror-january-grid-11"],
+  swa: ["swa-for-home-preity-sep-20", "swa-for-home-preity-sep", "swa-july-greek-01", "swa-july-greek-02", "swa-july-greek-03", "swa-july-greek-04", "swa-july-greek-05", "swa-july-greek-06", "swa-july-greek-07", "swa-july-greek-08", "swa-july-greek-09", "swa-july-greek-10", "swa-july-greek", "swa-val-coming-soon-recovered-14", "swa-val-coming-soon-18"],
+  decode: ["decode-post05", "decode-post06", "perfume-mockup-01", "perfume-mockup02"],
+  hosten: ["hosten-december-noise-01", "hosten-december-noise-03", "hosten-december-noise-04", "hosten-june-08", "hosten-june-14", "hosten-swa-work-from-home-july-21"],
+};
+
+/* first page background: a leaning wall of works, columns drifting in straight lines behind the headline */
+function initWall() {
+  const hero = $(".hero"); if (!hero) return;
+  const band = () => (innerWidth < 700 ? 0 : innerWidth < 1100 ? 1 : 2);
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const wall = document.createElement("div"); wall.className = "wall"; wall.setAttribute("aria-hidden", "true"); hero.prepend(wall);
+  let was = -1;
+  const build = () => {
+    if (band() === was) return; was = band();
+    const cols = [3, 4, 6][was], take = [18, 28, 39][was], lists = Object.entries(COVER).map(([p, names]) => shuffle(names.map((n) => ({ n, p }))));
+    // pick evenly from every project, then spread so the same brand is not beside itself
+    const pool = []; for (let k = 0; pool.length < take && k < 99; k++) for (const l of lists) if (l[k] && pool.length < take) pool.push(l[k]);
+    const out = Array.from({ length: cols }, () => []); shuffle(pool).forEach((it, i) => out[i % cols].push(it));
+    const cost = () => { let b = 0; out.forEach((c, x) => c.forEach((it, y) => { if (c[(y + 1) % c.length].p === it.p) b += 4; if (out[x + 1]?.[y]?.p === it.p) b += 1; })); return b; };
+    let low = cost();
+    for (let k = 0; k < 2500 && low > 0; k++) {
+      const a = out[(Math.random() * cols) | 0], b = out[(Math.random() * cols) | 0], i = (Math.random() * a.length) | 0, j = (Math.random() * b.length) | 0, t = a[i];
+      a[i] = b[j]; b[j] = t; const now = cost(); if (now <= low) low = now; else { b[j] = a[i]; a[i] = t; }
+    }
+    wall.innerHTML = `<div class="wall-cols">${out.map((list, i) => {
+      const h = list.map((it) => `<a class="wall-item" href="${link(it.p)}" data-cursor="Open" tabindex="-1" draggable="false"><img src="img/cover/${it.n}.webp" alt="" decoding="async" draggable="false"></a>`).join("");
+      return `<div class="wall-col" style="--d:${(list.length * (10.5 + (i * 5) % 4)).toFixed(0)}s;--i:${i}"><div class="wall-run${i % 2 ? " rev" : ""}">${h}${h}</div></div>`;
+    }).join("")}</div><div class="wall-fade"></div>`;
+  };
+  build(); addEventListener("resize", build);
+  new IntersectionObserver(([e]) => wall.classList.toggle("off", !e.isIntersecting)).observe(hero);   // rests while it is off screen
+}
+
 /* hero headline: size each line so the two bold lines are exactly the same width and the script line sits in proportion */
 function fitHero() {
   const h = $(".hero-title"); if (!h) return;
@@ -1113,6 +1146,7 @@ document.addEventListener("DOMContentLoaded", () => {
   (isProj ? renderProject : renderHome)();
   if (isProj) scrollTo(0, 0);
   if (isProj && !HASH && location.hash.length > 1) setTimeout(() => { try { goTo(location.hash.slice(1), true); } catch {} }, 450);
+  initWall();
   splitText();
   initReveal();
   initSmoothScroll();
