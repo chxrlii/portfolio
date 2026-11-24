@@ -253,21 +253,12 @@ const heroOf = (p) => imagesFor(p)[0];
 const byNames = (p, names) => names.map((n) => imagesFor(p).find((im) => nameOf(im) === n)).filter(Boolean);
 
 function header(active) {
-  const groups = [
-    ["Branding", PROJECTS.filter((p) => p.home)],
-    ["Social", PROJECTS.filter((p) => p.kind === "feed")],
-    ["More", PROJECTS.filter((p) => !p.home && p.kind !== "feed")],
-  ];
   return `
   <header class="site-head">
     <a class="logo" href="${home()}" aria-label="Home">${STAR}<span>Jithin<br>Baby</span></a>
-    <nav class="menu" id="menu">
-      ${groups.map(([g, ps]) => `<div class="menu-group"><div class="menu-label">${g}</div>${ps.map((p) => `<a href="${link(p.id)}" class="${p.id === active ? "on" : ""}">✦ ${esc((p.navLabel || p.title).toLowerCase())}</a>`).join("")}</div>`).join("")}
-      <div class="menu-group"><div class="menu-label">Info</div><a href="${home("about")}" data-goto="about">✦ about</a><a href="#contact" data-goto="contact">✦ contact</a></div>
-    </nav>
     <div class="head-right">
       ${(() => { const wa = ABOUT.socials.find((x) => x.icon === "wa" && x.url); return wa ? `<a class="wa-btn" href="${wa.url}?text=${encodeURIComponent("Hi Jithin, I saw your portfolio and would like to talk.")}" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">${ICONS.wa}<span>WhatsApp</span></a>` : ""; })()}
-      <a class="btn" href="mailto:${ABOUT.email}">Let's work together</a>
+      <a class="btn" href="mailto:${ABOUT.email}" aria-label="Let's work together">${ICONS.mail}<span>Let's work together</span></a>
       <button class="idx-btn" aria-label="Open index" aria-expanded="false" aria-controls="idx"><span class="idx-word"><i>Index</i><i>Close</i></span><span class="idx-burger"><b></b><b></b><b></b></span></button>
     </div>
   </header>
@@ -401,7 +392,7 @@ function renderHome() {
   ${header()}
   <main>
     <section class="hero">
-      <h1 class="hero-title" data-depth="10"><span class="l1"><span>I design</span></span><span class="l2"><span><em>things you</em></span></span><span class="l3"><span>remember.</span></span></h1>
+      <h1 class="tp" aria-label="Portfolio"></h1>
       <p class="hero-sub">Graphic Design · ${ABOUT.location}</p>
       <div class="scroll-cue" aria-hidden="true"><span></span></div>
     </section>
@@ -654,20 +645,8 @@ function initScrollFx() {
   if (!CALM) requestAnimationFrame(tick);
 }
 
-function initCursor() {
+function initMagnet() {
   if (!FINE || CALM) return;
-  const c = document.createElement("div"); c.className = "cursor"; c.innerHTML = "<span></span>"; document.body.appendChild(c);
-  let x = innerWidth / 2, y = innerHeight / 2, cx = x, cy = y;
-  addEventListener("mousemove", (e) => { x = e.clientX; y = e.clientY; });
-  document.addEventListener("mouseover", (e) => {
-    const t = e.target.closest("[data-cursor]"), l = e.target.closest("a, button");
-    c.classList.toggle("big", !!t); c.classList.toggle("link", !t && !!l);
-    if (t) c.firstChild.textContent = t.dataset.cursor;
-  });
-  document.addEventListener("mouseleave", () => c.classList.add("gone"));
-  document.addEventListener("mouseenter", () => c.classList.remove("gone"));
-  const loop = () => { cx += (x - cx) * 0.18; cy += (y - cy) * 0.18; c.style.transform = `translate3d(${cx}px, ${cy}px, 0)`; requestAnimationFrame(loop); };
-  loop();
   // hero mouse parallax
   const layers = $$("[data-depth]");
   addEventListener("mousemove", (e) => {
@@ -831,16 +810,282 @@ function initWall() {
   new IntersectionObserver(([e]) => wall.classList.toggle("off", !e.isIntersecting)).observe(hero);   // rests while it is off screen
 }
 
-/* hero headline: size each line so the two bold lines are exactly the same width and the script line sits in proportion */
-function fitHero() {
-  const h = $(".hero-title"); if (!h) return;
-  const hero = h.closest(".hero"), pad = parseFloat(getComputedStyle(hero).paddingLeft) || 16;
-  const target = Math.max(200, Math.min(hero.clientWidth - pad * 2, 1100, innerHeight > 300 ? innerHeight * 0.85 : Infinity));
-  [["l1", 1], ["l3", 1], ["l2", 0.8]].forEach(([cls, k]) => {
-    const line = $("." + cls, h), inner = line && line.firstElementChild; if (!inner) return;
-    const f = parseFloat(getComputedStyle(line).fontSize), w = inner.offsetWidth;
-    if (w) line.style.fontSize = `${(f * target * k / w).toFixed(2)}px`;
+/* first page: the "Portfolio" artwork as live shapes (letters, pen-drawn f, spinning star, selection frame you can pull) */
+const ART = {"d":{"P":"M278.76 301.06C293.84 301.06 300.06 293.33 300.06 282.39C300.06 272.01 293.84 264.28 278.76 264.28L253.88 264.28L253.88 301.06L278.76 301.06ZM227.69 367.84L227.69 242.59L282.91 242.59C307.41 242.59 323.05 260.51 323.05 283.14C323.05 305.97 307.41 322.38 282.91 322.38L253.88 322.38L253.88 367.84L227.69 367.84Z","r":"M397.95 367.84L397.95 275.03L420.94 275.03L420.94 286.16C429.04 273.71 438.47 272.58 448.45 272.58L451.66 272.58L451.66 297.67C449.4 297.29 447.13 297.1 444.87 297.1C429.8 297.1 422.45 304.65 422.45 319.55L422.45 367.84L397.95 367.84Z","t":"M510.39 306.72L533.2 306.72L533.2 333.13C533.2 352.75 521.89 370.29 495.69 370.29C468.55 370.29 457.81 352.94 457.81 332.94L457.81 249.94L481.93 249.94L481.93 275.03L533.2 275.03L533.2 292.39L481.93 292.39L481.93 330.49C481.93 342.19 486.08 348.98 496.07 348.98C505.87 348.98 510.39 342.37 510.39 330.87L510.39 306.72Z","f":"M542.93 361.4L533.88 361.4C531.62 361.4 531.99 358.57 534.82 358.57L544.43 358.57C564.98 322.36 593.06 283.31 629.43 270.48C655.06 261.62 678.05 260.29 693.69 279.72C696.71 283.31 698.03 289.91 690.87 292.17C683.14 262.56 655.06 263.31 630.75 272.74C600.41 284.44 577.04 325.94 558.95 358.57L573.08 358.57C575.53 358.57 574.96 361.4 572.32 361.4L557.44 361.4L526.91 416.49C506.74 452.89 478.47 491.94 442.1 504.77C416.47 513.63 393.48 514.95 377.83 495.52C374.82 491.94 373.5 485.34 380.66 483.07C388.39 512.69 416.47 511.93 440.78 502.5C473.01 490.05 497.32 443.84 515.79 410.64L542.93 361.4Z","o":"M632.38 398.94C632.38 380.08 624.84 370.84 609.95 370.84C595.06 370.84 587.52 380.08 587.52 398.94C587.52 417.81 595.06 427.24 609.95 427.24C624.84 427.24 632.38 417.81 632.38 398.94ZM562.27 398.94C562.27 369.52 580.55 350.09 609.95 350.09C638.97 350.09 657.06 369.33 657.06 398.94C657.06 428.37 638.78 447.8 609.95 447.8C579.98 447.8 562.27 427.8 562.27 398.94Z","l":"M665.92 318.58H690.42V445.35H665.92Z","i":"M701.35 352.54H725.85V445.35H701.35ZM701.35 318.58H725.85V341.41H701.35Z","o2":"M805 398.94C805 380.08 797.46 370.84 782.57 370.84C767.68 370.84 760.14 380.08 760.14 398.94C760.14 417.81 767.68 427.24 782.57 427.24C797.46 427.24 805 417.81 805 398.94ZM734.89 398.94C734.89 369.52 753.17 350.09 782.57 350.09C811.59 350.09 829.68 369.33 829.68 398.94C829.68 428.37 811.4 447.8 782.57 447.8C752.6 447.8 734.89 427.8 734.89 398.94Z","star":"M385.82 366.41L359.71 348.97L349.25 378.59L340.45 348.44L313.41 364.4L326.03 335.63L295.07 330.46L323.22 316.55L302.82 292.67L333.31 300.12L333.02 268.71L351.6 294.03L371.55 269.78L369.52 301.13L400.38 295.39L378.69 318.1L406.01 333.55L374.81 336.99L385.82 366.41Z"},"box":{"P":[227.69,242.59,323.05,367.84],"r":[397.95,272.58,451.66,367.84],"t":[457.81,249.94,533.2,370.29],"f":[373.5,260.29,698.03,514.95],"o":[562.27,350.09,657.06,447.8],"l":[665.92,318.58,690.42,445.35],"i":[701.35,318.58,725.85,445.35],"o2":[734.89,350.09,829.68,447.8],"star":[295.07,268.71,406.01,378.59]},"star":[350.82,322.22],"frame":{"l":268.35,"t":290.59,"r":788.84,"b":416.12}};
+function initTitle() {
+  const hero = $(".hero"), h1 = $(".tp"); if (!hero || !h1) return;
+  const F0 = ART.frame, HND = [["r", "t"], ["r", "b"], ["l", "t"], ["l", ""], ["l", "b"]];
+  
+  const letter = (k, i) => `<g class="tp-l" style="--i:${i};transform-origin:${(ART.box[k][0] + ART.box[k][2]) / 2}px ${ART.box[k][3]}px"><path class="ch tp-ch" data-k="${k}" style="transform-origin:${(ART.box[k][0] + ART.box[k][2]) / 2}px ${ART.box[k][3]}px" d="${ART.d[k]}"/></g>`;
+  h1.innerHTML = `<svg viewBox="222 236 614 286" aria-hidden="true">
+    <defs><mask id="tp-pen" maskUnits="userSpaceOnUse" x="350" y="240" width="370" height="300">
+      <path class="tp-pen" pathLength="1" d="M694 296C685 260 655 260 630 271.6C597 283 571 323 552 358L521 414C500 452 475 490 441 503.6C414 515 384 514 377 479"/>
+      <path class="tp-bar" pathLength="1" d="M528 360H579"/></mask></defs>
+    <path class="tp-frame" pathLength="1"/>
+    <g class="tp-word">
+      ${["P", "r", "t"].map((k, i) => letter(k, i)).join("")}
+      <g class="tp-f" mask="url(#tp-pen)"><path d="${ART.d.f}"/></g>
+      ${["o", "l", "i", "o2"].map((k, i) => letter(k, i + 3)).join("")}
+      <g class="tp-starbox" style="transform-origin:${ART.star[0]}px ${ART.star[1]}px"><path class="tp-star" style="transform-origin:${ART.star[0]}px ${ART.star[1]}px" d="${ART.d.star}"/></g>
+    </g>
+    <g class="tp-hs">${HND.map((h, i) => `<g class="tp-h" data-i="${i}" data-cursor="Drag" style="--i:${i}"><rect class="tp-hit" x="-20" y="-20" width="40" height="40"/><rect class="tp-sq" x="-3.2" y="-3.2" width="6.4" height="6.4"/></g>`).join("")}</g>
+  </svg>`;
+  const svg = h1.firstChild, q = (s) => svg.querySelector(s), qa = (s) => [...svg.querySelectorAll(s)];
+  const word = q(".tp-word"), frame = q(".tp-frame"), hs = qa(".tp-h"), starEl = q(".tp-star");
+
+  /* ---- selection frame: pull a corner, the word stretches with it, let go and it springs back ---- */
+  const S = { l: 0, t: 0, r: 0, b: 0 }, V = { l: 0, t: 0, r: 0, b: 0 }, T = { l: 0, t: 0, r: 0, b: 0 };
+  let drag = null, raf = 0, last = 0;
+  const draw = () => {
+    const l = F0.l + S.l, t = F0.t + S.t, r = F0.r + S.r, b = F0.b + S.b, sx = (r - l) / (F0.r - F0.l), sy = (b - t) / (F0.b - F0.t);
+    word.setAttribute("transform", `matrix(${sx.toFixed(4)} 0 0 ${sy.toFixed(4)} ${(l - F0.l * sx).toFixed(2)} ${(t - F0.t * sy).toFixed(2)})`);
+    frame.setAttribute("d", `M${l.toFixed(2)} ${t.toFixed(2)}H${r.toFixed(2)}V${b.toFixed(2)}H${l.toFixed(2)}Z`);
+    hs.forEach((h, i) => { const [x, y] = HND[i]; h.setAttribute("transform", `translate(${(x === "l" ? l : r).toFixed(2)} ${(y === "t" ? t : y === "b" ? b : (t + b) / 2).toFixed(2)})`); });
+  };
+  const tick = (now) => {
+    raf = 0; const dt = Math.min(.04, (now - last) / 1000 || .016); last = now; let busy = !!drag;
+    for (const k in S) { const own = drag && drag.keys.includes(k); for (let i = 0; i < 8; i++) { const h = dt / 8; V[k] += ((T[k] - S[k]) * (own ? 900 : 210) - V[k] * (own ? 60 : 11)) * h; S[k] += V[k] * h; } if (Math.abs(T[k] - S[k]) + Math.abs(V[k]) > .04) busy = true; else if (!drag) { S[k] = T[k]; V[k] = 0; } }
+    draw(); if (busy) raf = requestAnimationFrame(tick);
+  };
+  const go = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } };
+  const soft = (d, max) => max * Math.tanh(d / (max * 1.5));
+  hs.forEach((h, i) => {
+    h.addEventListener("pointerdown", (e) => { e.preventDefault(); e.stopPropagation(); h.setPointerCapture(e.pointerId); drag = { x: e.clientX, y: e.clientY, keys: HND[i].filter(Boolean), k: svg.viewBox.baseVal.width / svg.getBoundingClientRect().width }; h1.classList.add("pull"); go(); });
+    h.addEventListener("pointermove", (e) => { if (!drag || !h.hasPointerCapture(e.pointerId)) return; const [kx, ky] = HND[i]; T[kx] = soft((e.clientX - drag.x) * drag.k, 64); if (ky) T[ky] = soft((e.clientY - drag.y) * drag.k, 34); });
+    const up = () => { if (!drag) return; drag = null; for (const k in T) T[k] = 0; h1.classList.remove("pull"); go(); };
+    h.addEventListener("pointerup", up); h.addEventListener("pointercancel", up); h.addEventListener("lostpointercapture", up);
+    h.addEventListener("click", (e) => e.stopPropagation());
   });
+  draw();
+
+  /* ---- letters jump, turn blue, and fade back after 5s (mouse or finger) ---- */
+  qa(".tp-ch").forEach((c) => {
+    let t; c.addEventListener("mouseenter", () => {
+      if (!h1.classList.contains("done")) return;
+      c.classList.remove("jump"); void c.getBoundingClientRect(); c.classList.add("jump", "blue"); clearTimeout(t); t = setTimeout(() => c.classList.remove("blue"), 5000);
+    });
+  });
+
+  /* ---- star turns slowly, faster under the mouse, spins up with scrolling ---- */
+  const spin = starEl.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], { duration: 22000, iterations: Infinity });
+  let rate = 1, want = 1, sy = scrollY, rr = 0;
+  const ease = () => { rr = 0; rate += (want - rate) * .08; spin.playbackRate = rate; if (Math.abs(want - rate) > .02) rr = requestAnimationFrame(ease); };
+  const speed = (v) => { want = v; if (!rr) rr = requestAnimationFrame(ease); };
+  starEl.addEventListener("pointerenter", () => speed(9)); starEl.addEventListener("pointerleave", () => speed(1));
+  let st; addEventListener("scroll", () => { const d = Math.abs(scrollY - sy); sy = scrollY; if (scrollY < innerHeight) { speed(1 + Math.min(8, d / 8)); clearTimeout(st); st = setTimeout(() => speed(1), 140); } h1.style.opacity = Math.max(0, 1 - scrollY / innerHeight * .9); }, { passive: true });
+  new IntersectionObserver(([e]) => (e.isIntersecting ? spin.play() : spin.pause())).observe(hero);
+
+  /* ---- entrance ---- */
+  let dt; const play = () => { clearTimeout(dt); h1.classList.remove("go", "done"); void h1.offsetWidth; h1.classList.add("go"); dt = setTimeout(() => h1.classList.add("done"), 3000); };
+  play();
+}
+
+/* computers: a springy arrow with a tag that says what you can do (Open, Drag, View ...). With nothing to do it is just the arrow.
+   Phones and tablets keep the plain page. */
+function initArrow() {
+  if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  const drag = { el: null, on: false, x: 0 };
+
+  /* what the tag says, first match wins */
+  const WORDS = [
+    ["#lightbox .lb-prev", "Previous"], ["#lightbox .lb-next, #lightbox img", "Next"], ["#lightbox", "Close"],
+    [".sb-x, .sb-back", "Close"], [".sb-modes button", "Switch"], [".sb-open", "Open"],
+    [".idx-btn", () => (document.body.classList.contains("idx-open") ? "Close" : "Menu")],
+    [".slider .bars button", (el) => el.getAttribute("aria-label")], [".slider", "Next"],
+    ["[data-drift]", () => (drag.on ? "Dragging" : "Drag")],
+    [".wa-btn, .ci-wa, a[href*='wa.me']", "Say hi"], [".ci-ig, a[href*='instagram']", "Follow"], [".head-right .btn", "Let's talk"], [".ci-mail, a[href^='mailto:'], a[href*='mail.google']", "Email me"],
+    [".logo.big", "Click me"], [".logo", "Home"], [".back", "Go back"], [".next", "Next project"],
+    [".f-item, .m-item", "View"], [".wall-item, .fan-card[data-cursor], .feed-row, .card, .idx-item, .more, a[href*='project.html']", "Open"],
+    [".chips a, .chap-nav a", "Jump"], ["a[data-goto='contact']", "Contact"], ["a[data-goto='about']", "About me"], ["a[data-goto]", "Go"],
+    ["[data-cursor]", (el) => el.dataset.cursor], ["a[target='_blank']", "Visit"], ["a", "Open"], ["button", "Click"],
+  ];
+  const wordFor = (el) => {
+    if (el?.closest) for (const [sel, w] of WORDS) { const hit = el.closest(sel); if (hit) return typeof w === "function" ? w(hit) : w; }
+    return "";
+  };
+  /* damped spring, mass 1 */
+  class Spring {
+    constructor(k, c) { this.k = k; this.c = c; this.p = 0; this.v = 0; this.t = 0; }
+    jump(v) { this.p = this.t = v; this.v = 0; }
+    step(h) { this.v += ((this.t - this.p) * this.k - this.v * this.c) * h; this.p += this.v * h; }
+    get busy() { return Math.abs(this.t - this.p) + Math.abs(this.v) > .05; }
+  }
+  const map = (v, lo, mid, hi) => (v < 0 ? mid + (lo - mid) * Math.min(1, -v / 1000) : mid + (hi - mid) * Math.min(1, v / 1000));
+
+  const root = document.documentElement;
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="ac" aria-hidden="true">
+      <div class="ac-arrow"><svg viewBox="0 0 40 40" width="24" height="24"><path d="M1.8 4.4 7 36.2c.3 1.8 2.6 2.3 3.6.8l3.9-5.7c1.7-2.5 4.5-4.1 7.5-4.3l6.9-.5c1.8-.1 2.5-2.4 1.1-3.5L5 2.5c-1.4-1.1-3.5 0-3.3 1.9Z"/></svg></div>
+      <div class="ac-tag"><div class="ac-side"><div class="ac-pill"><span></span></div></div></div>
+    </div>`);
+  const $1 = (s) => document.querySelector(s), box = $1(".ac"), arrow = $1(".ac-arrow"), svg = arrow.firstChild, tag = $1(".ac-tag"), pill = $1(".ac-pill"), text = pill.firstChild;
+  const ax = new Spring(300, 25), ay = new Spring(300, 25), tx = new Spring(500, 50), ty = new Spring(500, 50), rot = new Spring(200, 15);
+  let x = 0, y = 0, raf = 0, last = 0, shown = false, word = "";
+
+  const fit = () => { pill.style.width = text.offsetWidth + 16 + "px"; };
+  const say = (w) => {
+    if (w === word) return; const was = word; word = w; clearTimeout(say.t);
+    box.classList.toggle("tagged", !!w);
+    if (!w) return;                                  // the tag shrinks away with its last word still in it
+    const put = () => { text.textContent = word; fit(); pill.classList.remove("swap"); };
+    if (!was) put(); else { pill.classList.add("swap"); say.t = setTimeout(put, 90); }
+  };
+
+  const tick = (now) => {
+    raf = 0; const dt = Math.min(.04, (now - last) / 1000 || .016); last = now;
+    const n = Math.max(1, Math.ceil(dt / .004)), h = dt / n;
+    for (let i = 0; i < n; i++) {
+      ax.step(h); ay.step(h); tx.step(h); ty.step(h);
+      rot.t = Math.max(-45, Math.min(45, (ax.v + ay.v) / 1000 * 30)); rot.step(h);
+    }
+    arrow.style.transform = `translate3d(${ax.p.toFixed(2)}px,${ay.p.toFixed(2)}px,0)`;
+    svg.style.transform = `rotate(${rot.p.toFixed(2)}deg) scale(${(1 - Math.min(Math.hypot(ax.v, ay.v) / 2000, .1)).toFixed(3)})`;
+    tag.style.transform = `translate3d(${tx.p.toFixed(2)}px,${ty.p.toFixed(2)}px,0)`;
+    pill.style.transform = `scale(${map(ax.v, .9, 1, 1.15).toFixed(3)},${map(ay.v, 1.15, 1, .9).toFixed(3)}) skew(${map(ax.v, -3, 0, 3).toFixed(2)}deg,${map(ay.v, -3, 0, 3).toFixed(2)}deg)`;
+    if (ax.busy || ay.busy || tx.busy || ty.busy || rot.busy) raf = requestAnimationFrame(tick);
+  };
+  const go = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); } };
+  const show = (v) => { if (v === shown) return; shown = v; box.classList.toggle("in", v); root.classList.toggle("ac-live", v); };
+
+  addEventListener("pointermove", (e) => {
+    if (e.pointerType !== "mouse") return show(false);
+    x = e.clientX; y = e.clientY;
+    if (!shown) { ax.jump(x); tx.jump(x); ay.jump(y); ty.jump(y); rot.jump(0); }
+    ax.t = tx.t = x; ay.t = ty.t = y;
+    if (drag.el && !drag.on && Math.abs(x - drag.x) > 6) { drag.on = true; say(wordFor(drag.el)); }
+    show(!e.target.closest?.("iframe, input, textarea, select"));   // typing fields and embedded sites keep their own cursor
+    /* near the right or bottom edge the tag moves to the other side so it is never cut off */
+    tag.classList.toggle("flip-x", x > root.clientWidth - pill.offsetWidth - 36); tag.classList.toggle("flip-y", y > innerHeight - 64);
+    go();
+  }, { passive: true });
+  document.addEventListener("mouseover", (e) => { if (drag.on) return; say(wordFor(e.target)); if (e.target.closest?.("iframe")) show(false); });
+  /* things also move under a still mouse (scrolling, drifting strips, popups), so keep the word honest */
+  setInterval(() => { if (shown && !drag.on && !document.hidden) { const el = document.elementFromPoint(x, y); if (el) say(wordFor(el)); } }, 140);
+  root.addEventListener("mouseleave", () => show(false));
+  addEventListener("pointerdown", (e) => { drag.el = e.target.closest?.("[data-drift]"); drag.x = e.clientX; box.classList.add("press"); }, true);
+  const up = () => { drag.el = null; drag.on = false; box.classList.remove("press"); };
+  addEventListener("pointerup", up, true); addEventListener("pointercancel", up, true); addEventListener("blur", () => { up(); show(false); });
+
+  document.fonts?.ready.then(fit);
+}
+
+/* top menu (computers): a pill glides between the words, Branding and Social open a small panel with a picture */
+function initNav() {
+  const head = $(".site-head"); if (!head) return;
+  const onHome = !!document.querySelector(".hero"), here = onHome ? "" : (HASH ? location.hash.slice(1) : new URLSearchParams(location.search).get("p"));
+  const cap = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase()), nameOfP = (p) => (p.familyOf ? cap(p.navLabel) : p.title);
+  const brand = PROJECTS.filter((p) => p.home), social = PROJECTS.filter((p) => p.kind === "feed"), more = PROJECTS.filter((p) => !p.home && p.kind !== "feed");
+  const feeds = document.querySelector(".feeds"), moreWork = document.querySelector(".more-work"), work = document.getElementById("work");
+  if (feeds && !document.getElementById("social")) (feeds.closest("section") || feeds).id ||= "social";
+  const socialId = feeds ? (feeds.closest("section") || feeds).id : "social";
+
+  /* pictures that read well in a tall frame; everything else uses its main image */
+  const PICK = { decode: "decode-post06", wordplay: "wordplay-01280", octopus: "v01-perspective-p1" };
+  const pictureOf = (p) => imagesFor(p).find((im) => PICK[p.id] && nameOf(im).startsWith(PICK[p.id])) || heroOf(p);
+
+  /* ---- markup ---- */
+  const roll = (t) => `<span class="nv-roll" data-t="${esc(t)}"><span>${esc(t)}</span></span>`;
+  const items = [
+    { k: "brand", t: "Branding", n: brand.length, list: brand, at: () => work, href: home("work") },
+    { k: "social", t: "Social", n: social.length, list: social, at: () => document.getElementById(socialId), href: home(socialId) },
+    ...more.map((p) => ({ k: p.id, t: p.title, href: link(p.id), p })),
+    { k: "about", t: "About", href: home("about"), goto: "about" },
+    { k: "contact", t: "Contact", href: "#contact", goto: "contact" },
+  ];
+  const nav = document.createElement("nav"); nav.className = "nv"; nav.setAttribute("aria-label", "Main");
+  nav.innerHTML = `<i class="nv-pill"></i>` + items.map((it) => it.list
+    ? `<button class="nv-i" data-k="${it.k}" data-cursor="Browse" aria-expanded="false" aria-controls="nv-panel">${roll(it.t)}<sup>${it.n}</sup><svg class="nv-chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="m1 1 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`
+    : `<a class="nv-i" data-k="${it.k}" href="${it.href}" ${it.goto ? `data-goto="${it.goto}"` : ""}>${roll(it.t)}</a>`).join("");
+  head.querySelector(".logo").after(nav);
+  const groups = items.filter((i) => i.list);
+  const panel = document.createElement("div"); panel.className = "nv-panel"; panel.id = "nv-panel"; panel.setAttribute("aria-hidden", "true");
+  panel.innerHTML = `<div class="nv-in"><div class="nv-lists">${groups.map((g) => `<div class="nv-list" data-k="${g.k}"><i class="nv-hi"></i>${g.list.map((p, i) => `
+      <a class="nv-row${p.id === here ? " on" : ""}" href="${link(p.id)}" data-id="${p.id}" style="--i:${i};--accent:${p.accent}" tabindex="-1"><span class="nv-num">${String(i + 1).padStart(2, "0")}</span><span class="nv-name"><span>${esc(nameOfP(p))}</span></span><span class="nv-meta">${imagesFor(p).length} works</span><span class="nv-arrow" aria-hidden="true">→</span></a>`).join("")}</div>`).join("")}</div>
+    <div class="nv-show" aria-hidden="true"><div class="nv-pics"></div><p class="nv-cap"></p></div></div>`;
+  const dim = document.createElement("div"); dim.className = "nv-dim";
+  document.body.append(dim, panel);
+  const q = (s, el = panel) => el.querySelector(s), qa = (s, el = panel) => [...el.querySelectorAll(s)];
+  const pill = q(".nv-pill", nav), btns = qa(".nv-i", nav), lists = qa(".nv-list"), pics = q(".nv-pics"), capEl = q(".nv-cap"), show = q(".nv-show"), listsBox = q(".nv-lists");
+
+  /* ---- the pill glides between the words; at rest it marks where you are ---- */
+  let active = null, open = "", tOpen, tClose, shownId = "";
+  const pillTo = (el) => { if (!el) { pill.classList.remove("in"); return; } const first = !pill.classList.contains("in"); if (first) pill.style.transition = "none"; pill.style.left = el.offsetLeft + "px"; pill.style.width = el.offsetWidth + "px"; if (first) { void pill.offsetWidth; pill.style.transition = ""; } pill.classList.add("in"); };
+  const rest = () => { nav.classList.remove("hot"); btns.forEach((b) => b.classList.toggle("lit", b === active)); pillTo(open ? btns.find((b) => b.dataset.k === open) : active); };
+  const light = (b) => { nav.classList.add("hot"); btns.forEach((x) => x.classList.toggle("lit", x === b)); pillTo(b); };
+  const spy = () => {
+    let k = "";
+    if (!onHome) { const p = PROJECTS.find((x) => x.id === here); k = p ? (brand.includes(p) ? "brand" : social.includes(p) ? "social" : p.id) : ""; }
+    else { const y = innerHeight * .45; [["about", document.getElementById("about")], ["brand", work], ["social", document.getElementById(socialId)], [more[0]?.id, moreWork], ["contact", document.getElementById("contact")]].map(([key, el]) => [key, el?.getBoundingClientRect().top]).filter(([, t]) => t !== undefined && t < y).sort((a, b) => b[1] - a[1]).slice(0, 1).forEach(([key]) => (k = key)); }
+    const b = btns.find((x) => x.dataset.k === k) || null; if (b !== active) { active = b; if (!nav.classList.contains("hot") && !open) rest(); }
+  };
+
+  /* ---- picture on the right wipes to the work you point at ---- */
+  const picture = (id) => {
+    if (!id || id === shownId) return; shownId = id; const p = PROJECTS.find((x) => x.id === id), im = pictureOf(p); if (!im) return;
+    const el = document.createElement("div"); el.className = "nv-pic"; el.innerHTML = `<img src="${im.t}" alt="">`; pics.append(el);
+    show.style.setProperty("--accent", p.accent); while (pics.children.length > 3) pics.firstChild.remove();
+    capEl.classList.remove("in"); void capEl.offsetWidth; capEl.textContent = p.tagline; capEl.classList.add("in");
+  };
+  const highlight = (row) => {
+    const list = row.parentElement, hi = q(".nv-hi", list), first = !list.classList.contains("pick");
+    if (first) hi.style.transition = "none"; hi.style.top = row.offsetTop + "px"; hi.style.height = row.offsetHeight + "px"; if (first) { void hi.offsetWidth; hi.style.transition = ""; }
+    list.classList.add("pick"); qa(".nv-row", list).forEach((r) => r.classList.toggle("hov", r === row)); list.style.setProperty("--accent", getComputedStyle(row).getPropertyValue("--accent")); picture(row.dataset.id);
+  };
+  const calm = (list) => { list.classList.remove("pick"); qa(".nv-row", list).forEach((r) => r.classList.remove("hov")); };
+
+  /* ---- open / switch / close ---- */
+  const place = () => { const n = nav.getBoundingClientRect(), w = panel.offsetWidth, b = btns.find((x) => x.dataset.k === open)?.getBoundingClientRect(); const l = Math.max(16, Math.min(document.documentElement.clientWidth - w - 16, n.left + n.width / 2 - w / 2)); panel.style.left = l + "px"; panel.style.top = head.offsetHeight + 16 + "px"; if (b) panel.style.setProperty("--ox", b.left + b.width / 2 - l + "px"); };
+  const setOpen = (k) => {
+    clearTimeout(tClose); clearTimeout(tOpen); if (k === open) return;
+    const from = groups.findIndex((g) => g.k === open), to = groups.findIndex((g) => g.k === k), was = open; open = k;
+    btns.forEach((b) => b.hasAttribute("aria-expanded") && b.setAttribute("aria-expanded", b.dataset.k === k));
+    panel.classList.toggle("in", !!k); dim.classList.toggle("in", !!k); panel.setAttribute("aria-hidden", !k);
+    if (!k) { qa(".nv-row").forEach((r) => (r.tabIndex = -1)); if (!nav.classList.contains("hot")) rest(); return; }
+    panel.style.setProperty("--dir", to >= from ? 1 : -1);
+    lists.forEach((l) => { const on = l.dataset.k === k; l.classList.toggle("in", on); l.classList.toggle("left", !on && groups.findIndex((g) => g.k === l.dataset.k) < to); calm(l); qa(".nv-row", l).forEach((r) => (r.tabIndex = on ? 0 : -1)); });
+    const l = lists.find((x) => x.dataset.k === k); listsBox.style.height = l.offsetHeight + "px"; panel.classList.toggle("fresh", !was);
+    place(); picture((q(".nv-row.on", l) || q(".nv-row", l)).dataset.id); light(btns.find((b) => b.dataset.k === k));
+  };
+  const later = () => { clearTimeout(tClose); tClose = setTimeout(() => { setOpen(""); rest(); }, 240); };
+
+  btns.forEach((b) => {
+    const it = items.find((i) => i.k === b.dataset.k);
+    b.addEventListener("pointerenter", (e) => { if (e.pointerType === "touch") return; light(b); clearTimeout(tClose); clearTimeout(tOpen); tOpen = setTimeout(() => setOpen(it.list ? it.k : ""), open ? 70 : 110); });
+    b.addEventListener("focus", () => { if (b.matches(":focus-visible")) light(b); });
+    if (it.list) {
+      let touch = false; b.addEventListener("pointerdown", (e) => (touch = e.pointerType === "touch"));
+      b.addEventListener("click", (e) => {
+        if (e.detail === 0 || touch) { setOpen(open === it.k ? "" : it.k); touch = false; return; }         // keyboard and touch: open / close
+        const el = it.at(); setOpen(""); clearTimeout(tOpen);                                                 // mouse: jump to that part of the page
+        if (el) { const y = Math.max(0, el.getBoundingClientRect().top + scrollY - head.offsetHeight - 12); window.lenis ? window.lenis.scrollTo(y, { duration: 1.3, force: true }) : scrollTo({ top: y, behavior: "smooth" }); }
+        else { document.body.classList.add("leaving"); setTimeout(() => (location.href = it.href), 450); }
+      });
+      b.addEventListener("keydown", (e) => { if (e.key === "ArrowDown") { e.preventDefault(); setOpen(it.k); q(".nv-row", lists.find((l) => l.dataset.k === it.k)).focus(); } });
+    }
+    b.addEventListener("keydown", (e) => { const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (d) { e.preventDefault(); btns[(btns.indexOf(b) + d + btns.length) % btns.length].focus(); } });
+  });
+  nav.addEventListener("pointerleave", (e) => { if (e.pointerType === "touch") return; clearTimeout(tOpen); if (open) later(); else rest(); });
+  panel.addEventListener("pointerenter", () => { clearTimeout(tClose); clearTimeout(tOpen); light(btns.find((b) => b.dataset.k === open)); });
+  panel.addEventListener("pointerleave", (e) => { if (e.pointerType !== "touch") later(); });
+  qa(".nv-row").forEach((r) => {
+    r.addEventListener("pointerenter", () => highlight(r)); r.addEventListener("focus", () => highlight(r));
+    r.addEventListener("keydown", (e) => {
+      const rows = qa(".nv-row", r.parentElement), i = rows.indexOf(r), d = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0; if (!d) return; e.preventDefault();
+      if (i + d < 0) btns.find((b) => b.dataset.k === open)?.focus(); else rows[Math.min(rows.length - 1, i + d)].focus();
+    });
+  });
+  lists.forEach((l) => l.addEventListener("pointerleave", () => calm(l)));
+  panel.addEventListener("pointermove", (e) => { const r = show.getBoundingClientRect(); show.style.setProperty("--px", ((e.clientX - r.left) / r.width - .5).toFixed(3)); show.style.setProperty("--py", ((e.clientY - r.top) / r.height - .5).toFixed(3)); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && open) { const b = btns.find((x) => x.dataset.k === open), inside = panel.contains(document.activeElement); setOpen(""); rest(); if (inside) b.focus(); } });
+  document.addEventListener("pointerdown", (e) => { if (open && !panel.contains(e.target) && !nav.contains(e.target)) { setOpen(""); rest(); } });
+  nav.addEventListener("focusout", (e) => { if (e.relatedTarget && !nav.contains(e.relatedTarget) && !panel.contains(e.relatedTarget)) { setOpen(""); rest(); } });
+  panel.addEventListener("focusout", (e) => { if (e.relatedTarget && !nav.contains(e.relatedTarget) && !panel.contains(e.relatedTarget)) { setOpen(""); rest(); } });
+  let sy = scrollY, rq = 0;
+  addEventListener("scroll", () => { if (open && Math.abs(scrollY - sy) > 80) { setOpen(""); rest(); } if (!open) sy = scrollY; if (!rq) rq = requestAnimationFrame(() => { rq = 0; spy(); }); }, { passive: true });
+  addEventListener("resize", () => { if (open) setOpen(""); rest(); });
+  groups.forEach((g) => g.list.forEach((p) => { const im = pictureOf(p); if (im) new Image().src = im.t; }));   // pictures ready before you point at them
+  const boot = () => { spy(); rest(); };
+  boot(); document.fonts?.ready.then(boot);
 }
 
 /* touch screens: sliding a finger across the bold headline letters makes each one jump and turn blue (fades back after 5s) */
@@ -1016,55 +1261,6 @@ function initGoto() {
   }, true);
 }
 
-/* liquid cursor across the whole site: a small blue drop that stretches as it moves and leaves a gooey trail.
-   Over anything you can click or drag it hands over to the normal circle cursor. Computers only.
-   The gooey filter only runs on a small box around the drop, and nothing animates while it is at rest. */
-function initGoo() {
-  if (CALM || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;   // computers only; phones keep the plain page
-  const N = 7, B = 160;
-  document.body.insertAdjacentHTML("beforeend", `
-    <svg class="goo-defs" aria-hidden="true" width="0" height="0"><filter id="goo" x="0" y="0" width="100%" height="100%"><feGaussianBlur in="SourceGraphic" stdDeviation="9"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"/></filter></svg>
-    <div class="goo" aria-hidden="true">${Array.from({ length: N }, (_, i) => `<i data-s="${(1 - i / (N + 1.5)).toFixed(3)}"></i>`).join("")}<b class="goo-shine"></b></div>`);
-  const box = $(".goo"), dots = $$(".goo i"), shine = $(".goo-shine");
-  const sc = dots.map((d) => +d.dataset.s);
-  const P = dots.map(() => ({ x: -999, y: -999 }));
-  const HOT = "a, button, input, textarea, select, label, [data-cursor], [data-drift], .fan-card, .chap-nav a, .ci, .idx-item";
-  let tx = -999, ty = -999, active = false, hot = false, touch = false, grow = 0, raf = 0, vx = 0, vy = 0, lx = 0, ly = 0, idle = 0, liftT;
-  const snap = (x, y) => { P.forEach((p) => { p.x = x; p.y = y; }); lx = x; ly = y; vx = vy = 0; };
-  const start = () => { if (!raf) raf = requestAnimationFrame(tick); };
-  const syncBody = () => document.body.classList.toggle("goo-on", active && !hot && !touch);
-
-  // computers
-  addEventListener("pointermove", (e) => {
-    if (e.pointerType !== "mouse") return;
-    if (!active) snap(e.clientX, e.clientY);
-    tx = e.clientX; ty = e.clientY; active = true; touch = false; syncBody(); start();
-  }, { passive: true });
-  document.addEventListener("mouseover", (e) => { hot = !!e.target.closest?.(HOT); syncBody(); start(); });
-  document.documentElement.addEventListener("mouseleave", () => { active = false; syncBody(); start(); });
-  addEventListener("pointerdown", (e) => { if (e.pointerType === "mouse") box.classList.add("press"); });
-  addEventListener("pointerup", () => box.classList.remove("press"));
-
-
-  const tick = () => {
-    raf = 0;
-    grow += (((active && !hot) ? 1 : 0) - grow) * .14;
-    P[0].x += (tx - P[0].x) * .32; P[0].y += (ty - P[0].y) * .32;
-    for (let i = 1; i < N; i++) { P[i].x += (P[i - 1].x - P[i].x) * .38; P[i].y += (P[i - 1].y - P[i].y) * .38; }
-    vx += ((P[0].x - lx) - vx) * .3; vy += ((P[0].y - ly) - vy) * .3; lx = P[0].x; ly = P[0].y;
-    const sp = Math.min(1, Math.hypot(vx, vy) / 40), ang = Math.atan2(vy, vx) * 180 / Math.PI;
-    box.style.transform = `translate3d(${(P[0].x - B).toFixed(1)}px, ${(P[0].y - B).toFixed(1)}px, 0)`;
-    dots.forEach((d, i) => {
-      const st = i === 0 ? ` rotate(${ang.toFixed(1)}deg) scale(${(1 + sp * .45).toFixed(3)}, ${(1 - sp * .28).toFixed(3)})` : "";
-      d.style.transform = `translate3d(${(P[i].x - P[0].x).toFixed(1)}px, ${(P[i].y - P[0].y).toFixed(1)}px, 0) scale(${(grow * sc[i]).toFixed(3)})${st}`;
-    });
-    shine.style.transform = `translate3d(${(-7 - vx * .2).toFixed(1)}px, ${(-8 - vy * .2).toFixed(1)}px, 0) scale(${grow.toFixed(3)})`;
-    const settled = Math.abs(tx - P[N - 1].x) + Math.abs(ty - P[N - 1].y) < .3 && Math.abs(grow - ((active && !hot) ? 1 : 0)) < .01;
-    idle = settled ? idle + 1 : 0;
-    if (idle < 20) start();
-  };
-}
-
 /* intro cards: "deal the cards". The stack deals out into a fan as the section scrolls into view,
    a card lifts when you point at it, and tapping a card opens its project. No dragging, so nothing fights the page scroll. */
 function initDeal() {
@@ -1146,23 +1342,24 @@ document.addEventListener("DOMContentLoaded", () => {
   (isProj ? renderProject : renderHome)();
   if (isProj) scrollTo(0, 0);
   if (isProj && !HASH && location.hash.length > 1) setTimeout(() => { try { goTo(location.hash.slice(1), true); } catch {} }, 450);
+  initNav();
   initWall();
+  initTitle();
   splitText();
   initReveal();
   initSmoothScroll();
   initScrollFx();
-  initCursor();
+  initMagnet();
   initDrift();
   initPlay();
   initDeal();
-  fitHero(); addEventListener("resize", fitHero); document.fonts?.ready.then(fitHero);
   initHeroPaint();
   initPageTransitions();
   if (window.lenis) { const raf = (t) => { window.lenis.raf(t); requestAnimationFrame(raf); }; requestAnimationFrame(raf); }
   initIndex();
   initMailLinks();
   initGoto();
-  initGoo();
+  initArrow();
   syncHeadHeight();
   if (location.hash && !isProj && location.hash !== "#top") setTimeout(() => { try { goTo(location.hash.slice(1), true); } catch {} }, 350);
 });
